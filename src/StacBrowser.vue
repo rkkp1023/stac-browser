@@ -1,19 +1,31 @@
 <template>
   <b-container id="stac-browser">
     <Authentication v-if="doAuth.length > 0" />
-    <ErrorAlert v-if="globalError" dismissible class="global-error" v-bind="globalError" @close="hideError" />
+    <ErrorAlert
+      v-if="globalError"
+      dismissible
+      class="global-error"
+      v-bind="globalError"
+      @close="hideError"
+    />
     <Sidebar v-if="sidebar" />
     <!-- Header -->
     <header>
       <div class="logo">{{ displayCatalogTitle }}</div>
       <StacHeader @enableSidebar="sidebar = true" />
     </header>
+    <!---Experiment react-->
+    <!--End-->
+
     <!-- Content (Item / Catalog) -->
     <router-view />
     <footer>
       <i18n tag="small" path="poweredBy" class="poweredby text-muted">
         <template #link>
-          <a href="https://github.com/radiantearth/stac-browser" target="_blank">STAC Browser</a> {{ browserVersion }}
+          <a href="https://github.com/radiantearth/stac-browser" target="_blank"
+            >STAC Browser</a
+          >
+          {{ browserVersion }}
         </template>
       </i18n>
     </footer>
@@ -23,28 +35,46 @@
 <script>
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Vuex, { mapActions, mapGetters, mapState } from 'vuex';
-import CONFIG from './config';
+import Vuex, { mapActions, mapGetters, mapState } from "vuex";
+import CONFIG from "./config";
 import getRoutes from "./router";
 import getStore from "./store";
+import CarbonVue2 from "@carbon/vue";
+import { CarbonIconsVue } from "@carbon/icons-vue";
 
 import {
-  AlertPlugin, BadgePlugin, ButtonGroupPlugin, ButtonPlugin,
-  CardPlugin, LayoutPlugin, SpinnerPlugin,
-  VBToggle, VBVisible } from "bootstrap-vue";
+  AlertPlugin,
+  BadgePlugin,
+  ButtonGroupPlugin,
+  ButtonPlugin,
+  CardPlugin,
+  LayoutPlugin,
+  SpinnerPlugin,
+  VBToggle,
+  VBVisible,
+} from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import ErrorAlert from './components/ErrorAlert.vue';
-import StacHeader from './components/StacHeader.vue';
+import ErrorAlert from "./components/ErrorAlert.vue";
+import StacHeader from "./components/StacHeader.vue";
 
-import STAC from './models/stac';
-import Utils from './utils';
-import URI from 'urijs';
+import STAC from "./models/stac";
+import Utils from "./utils";
+import URI from "urijs";
 
-import I18N from '@radiantearth/stac-fields/I18N';
-import { translateFields, API_LANGUAGE_CONFORMANCE, loadMessages } from './i18n';
-import { getBest, prepareSupported } from './locale-id';
+import I18N from "@radiantearth/stac-fields/I18N";
+import {
+  translateFields,
+  API_LANGUAGE_CONFORMANCE,
+  loadMessages,
+} from "./i18n";
+import { getBest, prepareSupported } from "./locale-id";
+
+//Carbon Icon import
+import Bee32 from "@carbon/icons-vue/es/bee/32";
+import Share16 from "@carbon/icons-vue/es/share/16";
+import Link16 from "@carbon/icons-vue/es/link/16";
 
 Vue.use(AlertPlugin);
 Vue.use(ButtonGroupPlugin);
@@ -53,18 +83,26 @@ Vue.use(BadgePlugin);
 Vue.use(CardPlugin);
 Vue.use(LayoutPlugin);
 Vue.use(SpinnerPlugin);
+Vue.use(CarbonVue2);
+Vue.use(CarbonIconsVue, {
+  components: {
+    Bee32,
+    Share16,
+    Link16,
+  },
+});
 
 // For collapsibles / accordions
-Vue.directive('b-toggle', VBToggle);
+Vue.directive("b-toggle", VBToggle);
 // Used to detect when a catalog/item becomes visible so that further data can be loaded
-Vue.directive('b-visible', VBVisible);
+Vue.directive("b-visible", VBVisible);
 
 // Setup router
 Vue.use(VueRouter);
 const router = new VueRouter({
   mode: CONFIG.historyMode,
   base: CONFIG.pathPrefix,
-  routes: getRoutes(CONFIG)
+  routes: getRoutes(CONFIG),
 });
 
 // Setup store
@@ -74,58 +112,77 @@ const store = getStore(CONFIG, router);
 // Pass Config through from props to vuex
 let Props = {};
 let Watchers = {};
-for(let key in CONFIG) {
+for (let key in CONFIG) {
   Props[key] = {
-    default: ['object', 'function'].includes(typeof CONFIG[key]) ? () => CONFIG[key] : CONFIG[key]
+    default: ["object", "function"].includes(typeof CONFIG[key])
+      ? () => CONFIG[key]
+      : CONFIG[key],
   };
   Watchers[key] = {
     immediate: true,
-    handler: function(newValue) {
-      this.$store.commit('config', {
-        [key]: newValue
+    handler: function (newValue) {
+      this.$store.commit("config", {
+        [key]: newValue,
       });
-    }
+    },
   };
 }
 
 export default {
-  name: 'StacBrowser',
+  name: "StacBrowser",
   router,
   store,
   components: {
-    Authentication: () => import('./components/Authentication.vue'),
+    Authentication: () => import("./components/Authentication.vue"),
     ErrorAlert,
-    Sidebar: () => import('./components/Sidebar.vue'),
-    StacHeader
+    Sidebar: () => import("./components/Sidebar.vue"),
+    StacHeader,
   },
   props: {
-    ...Props
+    ...Props,
   },
   data() {
     return {
       sidebar: false,
       error: null,
-      onDataLoaded: null
+      onDataLoaded: null,
     };
   },
   computed: {
-    ...mapState(['allowSelectCatalog', 'data', 'dataLanguage', 'description', 'doAuth', 'globalError', 'stateQueryParameters', 'title', 'uiLanguage', 'url']),
+    ...mapState([
+      "allowSelectCatalog",
+      "data",
+      "dataLanguage",
+      "description",
+      "doAuth",
+      "globalError",
+      "stateQueryParameters",
+      "title",
+      "uiLanguage",
+      "url",
+    ]),
     ...mapState({
-      catalogUrlFromVueX: 'catalogUrl',
-      detectLocaleFromBrowserFromVueX: 'detectLocaleFromBrowser',
-      fallbackLocaleFromVueX: 'fallbackLocale',
-      supportedLocalesFromVueX: 'supportedLocales',
-      storeLocaleFromVueX: 'storeLocale'
+      catalogUrlFromVueX: "catalogUrl",
+      detectLocaleFromBrowserFromVueX: "detectLocaleFromBrowser",
+      fallbackLocaleFromVueX: "fallbackLocale",
+      supportedLocalesFromVueX: "supportedLocales",
+      storeLocaleFromVueX: "storeLocale",
     }),
-    ...mapGetters(['displayCatalogTitle', 'fromBrowserPath', 'isExternalUrl', 'root', 'supportsConformance', 'toBrowserPath']),
+    ...mapGetters([
+      "displayCatalogTitle",
+      "fromBrowserPath",
+      "isExternalUrl",
+      "root",
+      "supportsConformance",
+      "toBrowserPath",
+    ]),
     browserVersion() {
-      if (typeof STAC_BROWSER_VERSION !== 'undefined') {
+      if (typeof STAC_BROWSER_VERSION !== "undefined") {
         return STAC_BROWSER_VERSION;
-      }
-      else {
+      } else {
         return "";
       }
-    }
+    },
   },
   watch: {
     ...Watchers,
@@ -133,7 +190,7 @@ export default {
       document.title = title;
     },
     description(description) {
-      let element = document.getElementById('meta-description');
+      let element = document.getElementById("meta-description");
       if (element) {
         element.setAttribute("content", Utils.summarizeMd(description, 200));
       }
@@ -158,8 +215,8 @@ export default {
         // Update the HTML lang tag
         document.documentElement.setAttribute("lang", locale);
 
-        this.$root.$emit('uiLanguageChanged', locale);
-      }
+        this.$root.$emit("uiLanguageChanged", locale);
+      },
     },
     dataLanguage: {
       immediate: true,
@@ -172,19 +229,22 @@ export default {
           if (link) {
             let state = Object.assign({}, this.stateQueryParameters);
             this.$router.push(this.toBrowserPath(link.href));
-            this.$store.commit('state', state);
-          }
-          else if (this.supportsConformance(API_LANGUAGE_CONFORMANCE)) {
+            this.$store.commit("state", state);
+          } else if (this.supportsConformance(API_LANGUAGE_CONFORMANCE)) {
             // this.url gets reset with resetCatalog so store the url for use in load
             let url = this.url;
-            // Todo: Resetting the catalogs is not ideal. 
+            // Todo: Resetting the catalogs is not ideal.
             // A better way would be to combine the language code and URL as the index in the browser database
             // This needs a database refactor though: https://github.com/radiantearth/stac-browser/issues/231
-            this.$store.commit('resetCatalog', true);
-            await this.$store.dispatch("load", { url, loadApi: true, show: true });
+            this.$store.commit("resetCatalog", true);
+            await this.$store.dispatch("load", {
+              url,
+              loadApi: true,
+              show: true,
+            });
           }
         }
-      }
+      },
     },
     catalogUrlFromVueX(url) {
       if (url) {
@@ -197,7 +257,7 @@ export default {
       handler() {
         let query = {};
         for (const [key, value] of Object.entries(this.$route.query)) {
-          if (!key.startsWith('.')) {
+          if (!key.startsWith(".")) {
             query[key] = value;
           }
         }
@@ -205,48 +265,53 @@ export default {
           let name = `.${key}`;
           if (Array.isArray(value)) {
             if (value.length > 0) {
-              query[name] = value.join(',');
+              query[name] = value.join(",");
             }
-          }
-          else if (value !== null) {
-              query[name] = value;
+          } else if (value !== null) {
+            query[name] = value;
           }
         }
 
-        this.$router.replace({ query }).catch(error => {
-          if (!VueRouter.isNavigationFailure(error, VueRouter.NavigationFailureType.duplicated)) {
+        this.$router.replace({ query }).catch((error) => {
+          if (
+            !VueRouter.isNavigationFailure(
+              error,
+              VueRouter.NavigationFailureType.duplicated
+            )
+          ) {
             throw Error(error);
           }
         });
-      }
+      },
     },
     root(root, oldRoot) {
       const canChange = [
-        'apiCatalogPriority',
-        'authConfig', // except for the 'formatter', which can't be encoded in JSON
-        'cardViewMode',
-        'cardViewSort',
-        'crossOriginMedia',
-        'defaultThumbnailSize',
-        'displayGeoTiffByDefault',
-        'showThumbnailsAsAssets'
+        "apiCatalogPriority",
+        "authConfig", // except for the 'formatter', which can't be encoded in JSON
+        "cardViewMode",
+        "cardViewSort",
+        "crossOriginMedia",
+        "defaultThumbnailSize",
+        "displayGeoTiffByDefault",
+        "showThumbnailsAsAssets",
       ];
 
-      let doReset = !root || (oldRoot && Utils.isObject(oldRoot['stac_browser']));
-      let doSet = root && Utils.isObject(root['stac_browser']);
+      let doReset =
+        !root || (oldRoot && Utils.isObject(oldRoot["stac_browser"]));
+      let doSet = root && Utils.isObject(root["stac_browser"]);
 
-      for(let key of canChange) {
+      for (let key of canChange) {
         let value;
         if (doReset) {
           value = CONFIG[key]; // Original value
         }
-        if (doSet && typeof root['stac_browser'][key] !== 'undefined') {
-          value = root['stac_browser'][key]; // Custom value from root
+        if (doSet && typeof root["stac_browser"][key] !== "undefined") {
+          value = root["stac_browser"][key]; // Custom value from root
         }
 
         // Commit config
-        if (typeof value !== 'undefined') {
-          this.$store.commit('config', { [key]: value });
+        if (typeof value !== "undefined") {
+          this.$store.commit("config", { [key]: value });
         }
       }
     },
@@ -257,7 +322,7 @@ export default {
       if (data instanceof STAC) {
         this.onDataLoaded();
       }
-    }
+    },
   },
   created() {
     this.$router.onReady(() => {
@@ -271,11 +336,11 @@ export default {
       }
 
       // Handle catalog change: https://github.com/radiantearth/stac-browser/issues/250
-      let resetOp = 'resetPage';
+      let resetOp = "resetPage";
       if (this.allowSelectCatalog && to.path) {
         let next = this.fromBrowserPath(to.path);
         if (this.isExternalUrl(next)) {
-          resetOp = 'resetCatalog';
+          resetOp = "resetCatalog";
         }
       }
 
@@ -284,24 +349,28 @@ export default {
     });
   },
   mounted() {
-    this.$root.$on('error', this.showError);
-    setInterval(() => this.$store.dispatch('loadBackground', 3), 200);
+    this.$root.$on("error", this.showError);
+    setInterval(() => this.$store.dispatch("loadBackground", 3), 200);
   },
   methods: {
-    ...mapActions(['switchLocale']),
+    ...mapActions(["switchLocale"]),
     detectLocale() {
       let locale;
       if (this.storeLocaleFromVueX) {
         try {
-          locale = window.localStorage.getItem('locale');
-        } catch(error) {
+          locale = window.localStorage.getItem("locale");
+        } catch (error) {
           console.error(error);
         }
       }
-      if (!locale && this.detectLocaleFromBrowserFromVueX && Array.isArray(navigator.languages)) {
+      if (
+        !locale &&
+        this.detectLocaleFromBrowserFromVueX &&
+        Array.isArray(navigator.languages)
+      ) {
         // Detect the most suitable locale
         const supported = prepareSupported(this.supportedLocalesFromVueX);
-        for(let l of navigator.languages) {
+        for (let l of navigator.languages) {
           const best = getBest(supported, l, null);
           if (best) {
             locale = best;
@@ -311,11 +380,11 @@ export default {
       }
       if (locale && this.supportedLocalesFromVueX.includes(locale)) {
         // This may only change the UI language, but does not change the data language if the data is not loaded yet
-        this.switchLocale({locale});
+        this.switchLocale({ locale });
         if (!this.data) {
           // Thus try switching the (data) language again once the data is loaded.
           this.onDataLoaded = () => {
-            this.switchLocale({locale});
+            this.switchLocale({ locale });
             this.onDataLoaded = null;
           };
         }
@@ -323,26 +392,29 @@ export default {
     },
     parseQuery(route) {
       let privateFromHash = {};
-      if (this.historyMode === 'history') {
-        let uri = URI(route.hash.replace(/^#/, ''));
+      if (this.historyMode === "history") {
+        let uri = URI(route.hash.replace(/^#/, ""));
         privateFromHash = uri.query(true);
       }
       let query = Object.assign({}, route.query, privateFromHash);
       let params = {};
-      for(let key in query) {
+      for (let key in query) {
         let value = query[key];
         // Store all private query parameters (start with ~) and replace them in the shown URI
-        if (key.startsWith('~')) {
+        if (key.startsWith("~")) {
           params.private = Utils.isObject(params.private) ? params.private : {};
           params.private[key.substr(1)] = value;
           delete query[key];
         }
         // Store all state related parameters (start with .)
-        else if (key.startsWith('.')) {
+        else if (key.startsWith(".")) {
           let realKey = key.substr(1);
           params.state = Utils.isObject(params.state) ? params.state : {};
-          if (Array.isArray(this.stateQueryParameters[realKey]) && !Array.isArray(value)) {
-            value = value.split(',');
+          if (
+            Array.isArray(this.stateQueryParameters[realKey]) &&
+            !Array.isArray(value)
+          ) {
+            value = value.split(",");
           }
           params.state[realKey] = value;
         }
@@ -357,35 +429,38 @@ export default {
       if (Utils.size(params) > 0) {
         for (let type in params) {
           for (let key in params[type]) {
-            this.$store.commit('setQueryParameter', {type, key, value: params[type][key]});
+            this.$store.commit("setQueryParameter", {
+              type,
+              key,
+              value: params[type][key],
+            });
           }
         }
       }
       if (params?.state?.language) {
-        this.switchLocale({locale: params.state.language});
+        this.switchLocale({ locale: params.state.language });
       }
       if (Utils.size(params.private) > 0) {
         this.$router.replace({ query });
       }
-
     },
     showError(error, message) {
-      this.$store.commit('showGlobalError', {
-        error, 
-        message
+      this.$store.commit("showGlobalError", {
+        error,
+        message,
       });
     },
     hideError() {
-      this.$store.commit('showGlobalError', null);
-    }
-  }
+      this.$store.commit("showGlobalError", null);
+    },
+  },
 };
 </script>
 
 <style lang="scss">
 @import "./theme/variables.scss";
-@import '~bootstrap/scss/bootstrap.scss';
-@import '~bootstrap-vue/src/index.scss';
+@import "~bootstrap/scss/bootstrap.scss";
+@import "~bootstrap-vue/src/index.scss";
 @import "./theme/page.scss";
 @import "./theme/custom.scss";
 </style>

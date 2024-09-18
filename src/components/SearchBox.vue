@@ -1,41 +1,47 @@
 <template>
-  <div class="vue-component search-box">
-    <span class="icon">🔎</span>
-    <b-form-input type="search" v-model.trim="searchTerm" :placeholder="placeholder || $t('search.placeholder')" />
-  </div>
+  <!-- <div class="vue-component search-box"> -->
+  <!-- <span class="icon">🔎</span>
+    <b-form-input type="search" v-model.trim="searchTerm" :placeholder="placeholder || $t('search.placeholder')" /> -->
+  <cv-search
+    v-model.trim="searchTerm"
+    type="search"
+    :placeholder="placeholder || $t('search.placeholder')"
+  >
+  </cv-search>
+  <!-- </div> -->
 </template>
 
 <script>
-import { BFormInput } from 'bootstrap-vue';
+import { BFormInput } from "bootstrap-vue";
 
 export default {
-  name: 'SearchBox',
+  name: "SearchBox",
   components: {
-    BFormInput
+    BFormInput,
   },
   props: {
     value: {
       type: String,
-      default: ''
+      default: "",
     },
     placeholder: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
   data() {
     return {
-      searchTerm: this.value
+      searchTerm: this.value,
     };
   },
   watch: {
     searchTerm(newValue) {
       if (newValue.length < this.minLength) {
-        newValue = '';
+        newValue = "";
       }
-      this.$emit('input', newValue);
-    }
-  }
+      this.$emit("input", newValue);
+    },
+  },
 };
 </script>
 
@@ -44,7 +50,8 @@ export default {
   position: relative;
   box-sizing: border-box;
 
-  input, .icon {
+  input,
+  .icon {
     font-size: 1em;
     margin: 0;
   }
