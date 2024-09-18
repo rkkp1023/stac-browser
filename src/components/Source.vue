@@ -30,9 +30,9 @@
           <b-icon-check v-if="locale === l.code" />
           <b-icon-blank v-else />
           <span class="title">
-            {{ l.native }}
+            <span :lang="l.code">{{ l.native }}</span>
             <template v-if="l.global && l.global !== l.native">
-              / {{ l.global }}</template
+              / <span lang="en">{{ l.global }}</span></template
             >
           </span>
           <b-icon-exclamation-triangle
@@ -323,9 +323,8 @@ export default {
         }
       }
 
-      return languages.sort((a, b) =>
-        a.global.localeCompare(b.global, this.uiLanguage)
-      );
+      const collator = new Intl.Collator(this.uiLanguage);
+      return languages.sort((a, b) => collator.compare(a.global, b.global));
     },
   },
   methods: {

@@ -275,7 +275,11 @@ export default {
       ];
     },
     sortedQueryables() {
-      return this.queryables.slice(0).sort((a, b) => a.title.localeCompare(b.title));
+      if (!Array.isArray(this.queryables)) {
+        return [];
+      }
+      const collator = new Intl.Collator(this.uiLanguage);
+      return this.queryables.slice(0).sort((a, b) => collator.compare(a.title, b.title));
     }
   },
   watch: {
@@ -427,9 +431,10 @@ export default {
       };
     },
     prepareCollections(collections) {
+      const collator = new Intl.Collator(this.uiLanguage);
       return collections
         .map(this.collectionToMultiSelect)
-        .sort((a,b) => a.text.localeCompare(b.text, this.uiLanguage));
+        .sort((a,b) => collator.compare(a.text, b.text));
     },
     findQueryableLink(links) {
       return Utils.getLinksWithRels(links, ogcQueryables)
